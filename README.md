@@ -330,17 +330,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 The prototype uses push-to-talk.
 
-If your Unity project uses the old input system, you may test with a keyboard key.
-
-If your project uses the new Unity Input System, create an `InputAction` for push-to-talk and bind it to a keyboard key or XR controller button.
-
-Example bindings:
-
-```text
-Keyboard: V
-XR Controller: Trigger
-XR Controller: Grip
-```
+Push the "A" button on the Meta Quest Controller to interact with the virtual agent. There is a little bit of latency in the answer.
 
 The student interaction is:
 
