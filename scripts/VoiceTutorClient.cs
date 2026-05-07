@@ -1,17 +1,24 @@
 using System;
 using System.Collections;
-using System.Net;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class VoiceTutorClient : MonoBehaviour
 {
+    [Header("Backend URLs")]
     [SerializeField] private string apiUrl = "http://localhost:8000/ask-audio";
     [SerializeField] private string ttsUrl = "http://localhost:8000/tts";
+
+    [Header("TTS")]
     [SerializeField] private string ttsVoice = "alloy";
+
+    [Header("Recording")]
     [SerializeField] private int maxRecordingSeconds = 10;
     [SerializeField] private int sampleRate = 16000;
+
+    [Header("Meta Quest Input")]
+    [SerializeField] private OVRInput.Button pushToTalkButton = OVRInput.Button.One;
+    [SerializeField] private OVRInput.Controller controller = OVRInput.Controller.RTouch;
 
     private AudioClip recording;
     private string microphoneDevice;
@@ -28,16 +35,22 @@ public class VoiceTutorClient : MonoBehaviour
         {
             Debug.LogError("No microphone found.");
         }
+
+        AudioSource audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            gameObject.AddComponent<AudioSource>();
+        }
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.V))
+        if (OVRInput.GetDown(pushToTalkButton, controller))
         {
             StartRecording();
         }
 
-        if (Input.GetKeyUp(KeyCode.V))
+        if (OVRInput.GetUp(pushToTalkButton, controller))
         {
             StopRecordingAndAsk();
         }
@@ -124,8 +137,6 @@ public class VoiceTutorClient : MonoBehaviour
             Debug.Log("AI answer: " + response.answer);
 
             StartCoroutine(SpeakAnswer(response.answer));
-
-            // Display response.answer in your VR UI and reproduce audio.
         }
     }
 
@@ -156,10 +167,21 @@ public class VoiceTutorClient : MonoBehaviour
 
         AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
 
+        if (clip == null)
+        {
+            Debug.LogError("TTS returned no playable AudioClip.");
+            yield break;
+        }
+
         AudioSource audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
         }
 
         audioSource.clip = clip;
